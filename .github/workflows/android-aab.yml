@@ -8,18 +8,20 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: aab-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # ---------------------------
+      # Checkout Repo
+      # ---------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ---------------------------
+      # Setup Java
+      # ---------------------------
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -27,14 +29,47 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      # Removed wrapper-validation-action because of GitHub runner network timeouts
-
+      # ---------------------------
+      # Decode Keystore
+      # ---------------------------
       - name: Decode Keystore
         shell: bash
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/keystore.jks"
           ls -la "$GITHUB_WORKSPACE/keystore.jks"
 
+      # ---------------------------
+      # DEBUG WRAPPER FILES
+      # ---------------------------
+      - name: Debug wrapper files
+        shell: bash
+        run: |
+          echo "---- ROOT DIRECTORY ----"
+          ls -la
+
+          echo "---- GRADLE FOLDER ----"
+          ls -la gradle || true
+
+          echo "---- WRAPPER FOLDER ----"
+          ls -la gradle/wrapper || true
+
+          echo "---- CHECK JAR EXISTS ----"
+          if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "gradle-wrapper.jar FOUND"
+          else
+            echo "gradle-wrapper.jar NOT FOUND"
+          fi
+
+          echo "---- CHECK PROPERTIES EXISTS ----"
+          if [ -f gradle/wrapper/gradle-wrapper.properties ]; then
+            echo "gradle-wrapper.properties FOUND"
+          else
+            echo "gradle-wrapper.properties NOT FOUND"
+          fi
+
+      # ---------------------------
+      # BUILD AAB
+      # ---------------------------
       - name: Build Release AAB
         shell: bash
         run: |
@@ -45,25 +80,23 @@ jobs:
             -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
             -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
 
+      # ---------------------------
+      # Upload AAB
+      # ---------------------------
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bible-trivia-quiz-release
-          path: |
-            app/build/outputs/bundle/release/*.aab
-            app/build/outputs/bundle/*/release/*.aab
-          if-no-files-found: error
-          retention-days: 30
+          path: app/build/outputs/bundle/release/*.aab
 
-      - name: Create GitHub Release (attach AAB)
+      # ---------------------------
+      # Create GitHub Release
+      # ---------------------------
+      - name: Create Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Bible Trivia Quiz v1.0.${{ github.run_number }}
-          generate_release_notes: true
-          files: |
-            app/build/outputs/bundle/release/*.aab
-            app/build/outputs/bundle/*/release/*.aab
+          files: app/build/outputs/bundle/release/*.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
