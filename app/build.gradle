@@ -32,6 +32,4 @@ android {
 }
 
 dependencies {
-    // If your MainActivity uses WebView, this is fine without extra deps.
-    // Add dependencies later only if build errors demand them.
 }
