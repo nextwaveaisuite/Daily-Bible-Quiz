@@ -1,4 +1,4 @@
-name: Build Android (AAB + APK)
+name: Build Android (AAB + APK) - No Wrapper
 
 on:
   push:
@@ -21,27 +21,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
-
-      # Self-heal: if wrapper files are mistakenly in root, move them where Gradle expects
-      - name: Fix wrapper placement (self-heal)
-        shell: bash
-        run: |
-          set -e
-          mkdir -p gradle/wrapper
-
-          if [ -f "gradle-wrapper.jar" ] && [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
-            echo "Moving gradle-wrapper.jar into gradle/wrapper/ ..."
-            mv -f gradle-wrapper.jar gradle/wrapper/gradle-wrapper.jar
-          fi
-
-          if [ -f "gradle-wrapper.properties" ] && [ ! -f "gradle/wrapper/gradle-wrapper.properties" ]; then
-            echo "Moving gradle-wrapper.properties into gradle/wrapper/ ..."
-            mv -f gradle-wrapper.properties gradle/wrapper/gradle-wrapper.properties
-          fi
-
-          echo "Wrapper files now:"
-          ls -la gradle/wrapper || true
 
       - name: Decode Keystore
         shell: bash
@@ -49,12 +28,19 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/keystore.jks"
           ls -la "$GITHUB_WORKSPACE/keystore.jks"
 
-      - name: Build Release (AAB + APK)
+      - name: Download Gradle 8.2
         shell: bash
         run: |
-          chmod +x ./gradlew
+          set -e
+          curl -L -o gradle-8.2-bin.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
+          unzip -q gradle-8.2-bin.zip
+          ./gradle-8.2/bin/gradle -v
 
-          ./gradlew --no-daemon --stacktrace bundleRelease assembleRelease \
+      - name: Build Release (AAB + APK) using downloaded Gradle
+        shell: bash
+        run: |
+          set -e
+          ./gradle-8.2/bin/gradle --no-daemon --stacktrace bundleRelease assembleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/keystore.jks" \
             -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
             -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
