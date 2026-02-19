@@ -13,15 +13,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ---------------------------
-      # Checkout Repo
-      # ---------------------------
+      # Checkout Repository
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ---------------------------
       # Setup Java
-      # ---------------------------
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -29,18 +25,14 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      # ---------------------------
       # Decode Keystore
-      # ---------------------------
       - name: Decode Keystore
         shell: bash
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$GITHUB_WORKSPACE/keystore.jks"
           ls -la "$GITHUB_WORKSPACE/keystore.jks"
 
-      # ---------------------------
       # DEBUG WRAPPER FILES
-      # ---------------------------
       - name: Debug wrapper files
         shell: bash
         run: |
@@ -67,9 +59,7 @@ jobs:
             echo "gradle-wrapper.properties NOT FOUND"
           fi
 
-      # ---------------------------
-      # BUILD AAB
-      # ---------------------------
+      # Build Signed AAB
       - name: Build Release AAB
         shell: bash
         run: |
@@ -80,18 +70,14 @@ jobs:
             -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
             -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
 
-      # ---------------------------
       # Upload AAB
-      # ---------------------------
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bible-trivia-quiz-release
           path: app/build/outputs/bundle/release/*.aab
 
-      # ---------------------------
       # Create GitHub Release
-      # ---------------------------
       - name: Create Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
