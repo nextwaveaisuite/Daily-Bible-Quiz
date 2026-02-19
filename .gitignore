@@ -1,9 +1,43 @@
+# =========================
+# Gradle
+# =========================
 .gradle/
 **/.gradle/
 build/
 **/build/
+
+# Do NOT ignore wrapper
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
+
+# =========================
+# Local config
+# =========================
 .local.properties
+
+# =========================
+# Android Studio / IntelliJ
+# =========================
 .idea/
 *.iml
+*.ipr
+*.iws
+
+# =========================
+# OS Files
+# =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Keystore (VERY IMPORTANT)
+# =========================
+*.jks
+*.keystore
