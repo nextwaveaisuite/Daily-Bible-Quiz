@@ -1,8 +1,37 @@
+plugins {
+    id 'com.android.application'
+}
+
 android {
+    namespace "com.nextwaveaisuite.bibletrivia"
     compileSdk 35
 
     defaultConfig {
+        applicationId "com.nextwaveaisuite.bibletrivia"
+        minSdk 21
         targetSdk 35
-        // minSdk keep whatever you already use (NOT 35)
+        versionCode 1
+        versionName "1.0"
     }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // If your MainActivity uses WebView, this is fine without extra deps.
+    // Add dependencies later only if build errors demand them.
 }
