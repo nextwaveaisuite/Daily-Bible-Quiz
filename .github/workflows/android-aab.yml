@@ -27,8 +27,7 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v2
+      # Removed wrapper-validation-action because of GitHub runner network timeouts
 
       - name: Decode Keystore
         shell: bash
