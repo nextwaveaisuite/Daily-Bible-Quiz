@@ -15,4 +15,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Bible Trivia Quiz"
+
 include ':app'
